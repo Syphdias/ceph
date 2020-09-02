@@ -130,28 +130,29 @@ class Device(object):
                     self.sys_api = part
                     break
 
-        # if the path is not absolute, we have 'vg/lv', let's use LV name
-        # to get the LV.
-        if self.path[0] == '/':
-            lv = lvm.get_first_lv(filters={'lv_path': self.path})
-        else:
-            vgname, lvname = self.path.split('/')
-            lv = lvm.get_first_lv(filters={'lv_name': lvname,
-                                           'vg_name': vgname})
-        if lv:
-            self.lv_api = lv
-            self.lvs = [lv]
-            self.abspath = lv.lv_path
-            self.vg_name = lv.vg_name
-            self.lv_name = lv.name
-        else:
-            dev = disk.lsblk(self.path)
-            self.blkid_api = disk.blkid(self.path)
-            self.disk_api = dev
-            device_type = dev.get('TYPE', '')
-            # always check is this is an lvm member
-            if device_type in ['part', 'disk']:
-                self._set_lvm_membership()
+        if self.path != "tmpfs":
+            # if the path is not absolute, we have 'vg/lv', let's use LV name
+            # to get the LV.
+            if self.path[0] == '/':
+                lv = lvm.get_first_lv(filters={'lv_path': self.path})
+            else:
+                vgname, lvname = self.path.split('/')
+                lv = lvm.get_first_lv(filters={'lv_name': lvname,
+                                               'vg_name': vgname})
+            if lv:
+                self.lv_api = lv
+                self.lvs = [lv]
+                self.abspath = lv.lv_path
+                self.vg_name = lv.vg_name
+                self.lv_name = lv.name
+            else:
+                dev = disk.lsblk(self.path)
+                self.blkid_api = disk.blkid(self.path)
+                self.disk_api = dev
+                device_type = dev.get('TYPE', '')
+                # always check is this is an lvm member
+                if device_type in ['part', 'disk']:
+                    self._set_lvm_membership()
 
         self.ceph_disk = CephDiskDevice(self)
 

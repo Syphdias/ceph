@@ -75,6 +75,13 @@ class TestDevice(object):
         disk = device.Device("/dev/sda")
         assert disk.is_device is True
 
+    def test_tmpfs_is_not_a_device(self, device_info):
+        data = {"/dev/sda": {"partitions": {}}}
+        lsblk = {"TYPE": "device"}
+        device_info(devices=data, lsblk=lsblk)
+        disk = device.Device("tmpfs")
+        assert not disk.is_device
+
     def test_device_is_rotational(self, device_info):
         data = {"/dev/sda": {"rotational": "1"}}
         lsblk = {"TYPE": "device"}
